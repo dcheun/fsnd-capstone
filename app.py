@@ -86,7 +86,7 @@ def create_app(test_config=None):
 
         return jsonify({
             'success': True,
-            'movie': actor.format()
+            'actor': actor.format()
         })
 
     @app.route('/actors/<int:actor_id>/movies', methods=['GET'])
@@ -144,7 +144,7 @@ def create_app(test_config=None):
         empty_fields = set(x for x in body if not body.get(x))
         empty_required_fields = required_fields.intersection(empty_fields)
         if empty_required_fields:
-            abort(400, f'Movie field(s) cannot be empty: {", ".join(empty_required_fields)}')
+            abort(400, f'Actor field(s) cannot be empty: {", ".join(empty_required_fields)}')
 
         try:
             actor = Actor(
@@ -214,9 +214,8 @@ def create_app(test_config=None):
                 'created_id': cast.id
             })
         except IntegrityError:
-            abort(400, f'Casting already exist')
+            abort(400, f'Casting already exists')
         except Exception:
-            print(sys.exc_info())
             abort(422)
 
     @app.route('/actors/<int:actor_id>', methods=['PATCH'])
@@ -282,13 +281,13 @@ def create_app(test_config=None):
         actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
 
         if actor is None:
-            abort(404)
+            abort(422)
 
         try:
             actor.delete()
             return jsonify({
                 'success': True,
-                'delete': actor_id
+                'deleted_id': actor_id
             })
         except Exception:
             abort(422)
@@ -298,13 +297,13 @@ def create_app(test_config=None):
         movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
 
         if movie is None:
-            abort(404)
+            abort(422)
 
         try:
             movie.delete()
             return jsonify({
                 'success': True,
-                'delete': movie_id
+                'deleted_id': movie_id
             })
         except Exception:
             abort(422)
@@ -314,13 +313,13 @@ def create_app(test_config=None):
         casting = Casting.query.filter(Casting.id == casting_id).one_or_none()
 
         if casting is None:
-            abort(404)
+            abort(422)
 
         try:
             casting.delete()
             return jsonify({
                 'success': True,
-                'delete': casting_id
+                'deleted_id': casting_id
             })
         except Exception:
             abort(422)

@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
 
 # Database path. Eg: postgresql://postgres:postgres@192.168.20.154:5432/casting_agency
-database_path = os.environ['DATABASE_URL']
+database_path = os.environ.get('DATABASE_URL')
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -13,7 +13,7 @@ migrate = Migrate()
 
 def setup_db(app, db_path=database_path):
     """Binds a Flask application and a SQLAlchemy service."""
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_path
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_path or database_path
     db.app = app
     db.init_app(app)
     migrate.init_app(app, db)

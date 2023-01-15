@@ -1,0 +1,358 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 15.0 (Debian 15.0-1.pgdg110+1)
+-- Dumped by pg_dump version 15.0 (Debian 15.0-1.pgdg110+1)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: actor; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.actor (
+    id integer NOT NULL,
+    name character varying,
+    age integer,
+    gender character varying(1)
+);
+
+
+ALTER TABLE public.actor OWNER TO postgres;
+
+--
+-- Name: actor_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.actor_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.actor_id_seq OWNER TO postgres;
+
+--
+-- Name: actor_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.actor_id_seq OWNED BY public.actor.id;
+
+
+--
+-- Name: alembic_version; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.alembic_version (
+    version_num character varying(32) NOT NULL
+);
+
+
+ALTER TABLE public.alembic_version OWNER TO postgres;
+
+--
+-- Name: casting; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.casting (
+    id integer NOT NULL,
+    movie_id integer NOT NULL,
+    actor_id integer NOT NULL
+);
+
+
+ALTER TABLE public.casting OWNER TO postgres;
+
+--
+-- Name: casting_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.casting_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.casting_id_seq OWNER TO postgres;
+
+--
+-- Name: casting_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.casting_id_seq OWNED BY public.casting.id;
+
+
+--
+-- Name: movie; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.movie (
+    id integer NOT NULL,
+    title character varying(256),
+    release_date date
+);
+
+
+ALTER TABLE public.movie OWNER TO postgres;
+
+--
+-- Name: movie_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.movie_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.movie_id_seq OWNER TO postgres;
+
+--
+-- Name: movie_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.movie_id_seq OWNED BY public.movie.id;
+
+
+--
+-- Name: actor id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.actor ALTER COLUMN id SET DEFAULT nextval('public.actor_id_seq'::regclass);
+
+
+--
+-- Name: casting id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.casting ALTER COLUMN id SET DEFAULT nextval('public.casting_id_seq'::regclass);
+
+
+--
+-- Name: movie id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.movie ALTER COLUMN id SET DEFAULT nextval('public.movie_id_seq'::regclass);
+
+
+--
+-- Data for Name: actor; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.actor (id, name, age, gender) FROM stdin;
+1       Morgan Freeman  85      M
+2       Tim Robbins     64      M
+3       Marlon Brando   80      M
+4       Al Pacino       82      M
+5       Christian Bale  48      M
+6       Heath Ledger    28      M
+7       John Travolta   68      M
+8       Uma Thurman     52      F
+9       Liam Neeson     70      M
+10      Leonardo Dicaprio       48      M
+11      Jodie Foster    60      F
+12      Anthony Hopkins 85      M
+13      Sigourney Weaver        73      F
+14      Kevin Spacey    63      M
+15      Angelina Jolie  47      F
+16      Scarlett Johansson      38      F
+17      Jennifer Lawrence       32      F
+18      Emily Blunt     39      F
+19      Elizabeth Olsen 33      F
+20      Zendaya 26      F
+21      Tom Hanks       66      M
+\.
+
+
+--
+-- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.alembic_version (version_num) FROM stdin;
+66d054bb9ab5
+\.
+
+
+--
+-- Data for Name: casting; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.casting (id, movie_id, actor_id) FROM stdin;
+1       1       1
+2       1       2
+3       2       3
+4       2       4
+5       3       5
+6       3       6
+7       4       7
+8       4       8
+9       5       9
+12      7       21
+13      18      21
+14      18      10
+15      17      21
+16      16      15
+17      15      19
+18      15      16
+19      14      17
+20      13      20
+21      12      14
+22      11      13
+23      10      21
+24      9       11
+25      9       12
+26      6       21
+27      19      21
+28      20      21
+29      21      21
+30      22      21
+31      23      21
+32      24      21
+33      25      21
+34      26      21
+35      27      21
+36      28      21
+37      29      21
+\.
+
+
+--
+-- Data for Name: movie; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.movie (id, title, release_date) FROM stdin;
+1       The Shawshank Redemption        1994-10-04
+2       The Godfather   1972-03-14
+3       The Dark Knight 2008-07-14
+4       Pulp Fiction    1994-10-14
+5       Schindler's List        1993-11-30
+6       Forrest Gump    1994-06-23
+8       Inception       2010-07-16
+9       The Silence of the Lambs        1991-01-30
+10      The Green Mile  1999-12-10
+11      Aliens  1986-07-18
+12      American Beauty 1999-09-15
+13      Spider-Man: No Way Home 2021-12-17
+14      The Hunger Games        2012-03-23
+15      The Avengers    2012-05-04
+16      Lara Croft: Tomb Raider 2001-06-15
+17      Cast Away       2000-12-22
+18      Catch Me If You Can     2002-12-25
+7       Apollo 13       1995-06-30
+19      Greyhound       2020-07-10
+20      Inferno 2016-10-08
+21      Sleepless in Seattle    1993-06-25
+22      Sully   2016-09-09
+23      Pinocchio       2022-09-08
+24      You've Got Mail 1998-12-18
+25      Saving Private Ryan     1998-07-24
+26      Big     1988-06-03
+27      Angels & Demons 2009-05-15
+28      The Da Vinci Code       2006-05-19
+29      The Post        2017-12-14
+\.
+
+
+--
+-- Name: actor_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.actor_id_seq', 21, true);
+
+
+--
+-- Name: casting_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.casting_id_seq', 37, true);
+
+
+--
+-- Name: movie_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.movie_id_seq', 29, true);
+
+
+--
+-- Name: actor actor_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.actor
+    ADD CONSTRAINT actor_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.alembic_version
+    ADD CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num);
+
+
+--
+-- Name: casting casting_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.casting
+    ADD CONSTRAINT casting_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: movie movie_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.movie
+    ADD CONSTRAINT movie_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: casting unique_casting; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.casting
+    ADD CONSTRAINT unique_casting UNIQUE (movie_id, actor_id);
+
+
+--
+-- Name: casting casting_actor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.casting
+    ADD CONSTRAINT casting_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES public.actor(id) ON DELETE CASCADE;
+
+
+--
+-- Name: casting casting_movie_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.casting
+    ADD CONSTRAINT casting_movie_id_fkey FOREIGN KEY (movie_id) REFERENCES public.movie(id) ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--
