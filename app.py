@@ -1,10 +1,8 @@
-import os
-import sys
-
 from flask import Flask, request, abort, jsonify
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
 
+from auth.auth import AuthError, requires_auth
 from models import setup_db, Movie, Actor, Casting
 
 ITEMS_PER_PAGE = 10
@@ -38,7 +36,8 @@ def create_app(test_config=None):
         return response
 
     @app.route('/actors', methods=['GET'])
-    def get_actors():
+    @requires_auth('get:actors')
+    def get_actors(payload):
         selection = Actor.query.order_by(Actor.id).all()
         actors = paginate(request, selection)
 
@@ -52,7 +51,8 @@ def create_app(test_config=None):
         })
 
     @app.route('/movies', methods=['GET'])
-    def get_movies():
+    @requires_auth('get:movies')
+    def get_movies(payload):
         selection = Movie.query.order_by(Movie.release_date.desc()).all()
         movies = paginate(request, selection)
 
@@ -66,7 +66,8 @@ def create_app(test_config=None):
         })
 
     @app.route('/movies/<int:movie_id>', methods=['GET'])
-    def get_movie_by_id(movie_id):
+    @requires_auth('get:movies')
+    def get_movie_by_id(payload, movie_id):
         movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
 
         if not movie:
@@ -78,7 +79,8 @@ def create_app(test_config=None):
         })
 
     @app.route('/actors/<int:actor_id>', methods=['GET'])
-    def get_actor_by_id(actor_id):
+    @requires_auth('get:actors')
+    def get_actor_by_id(payload, actor_id):
         actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
 
         if not actor:
@@ -90,7 +92,8 @@ def create_app(test_config=None):
         })
 
     @app.route('/actors/<int:actor_id>/movies', methods=['GET'])
-    def get_movies_by_actor(actor_id):
+    @requires_auth('get:movies')
+    def get_movies_by_actor(payload, actor_id):
         actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
 
         if not actor:
@@ -111,7 +114,8 @@ def create_app(test_config=None):
         })
 
     @app.route('/movies/<int:movie_id>/actors', methods=['GET'])
-    def get_actors_by_movie(movie_id):
+    @requires_auth('get:actors')
+    def get_actors_by_movie(payload, movie_id):
         movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
 
         if not movie:
@@ -132,7 +136,8 @@ def create_app(test_config=None):
         })
 
     @app.route('/actors', methods=['POST'])
-    def create_actor():
+    @requires_auth('post:actors')
+    def create_actor(payload):
         body = request.get_json()
 
         # Check for required fields.
@@ -161,7 +166,8 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/movies', methods=['POST'])
-    def create_movie():
+    @requires_auth('post:movies')
+    def create_movie(payload):
         body = request.get_json()
 
         # Check for required fields.
@@ -189,7 +195,8 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/castings', methods=['POST'])
-    def create_casting():
+    @requires_auth('post:castings')
+    def create_casting(payload):
         body = request.get_json()
 
         # Check for required fields.
@@ -219,7 +226,8 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/actors/<int:actor_id>', methods=['PATCH'])
-    def update_actor(actor_id):
+    @requires_auth('patch:actors')
+    def update_actor(payload, actor_id):
         body = request.get_json()
 
         # Check for valid inputs.
@@ -249,7 +257,8 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/movies/<int:movie_id>', methods=['PATCH'])
-    def update_movie(movie_id):
+    @requires_auth('patch:movies')
+    def update_movie(payload, movie_id):
         body = request.get_json()
 
         # Check for valid inputs.
@@ -277,7 +286,8 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/actors/<int:actor_id>', methods=['DELETE'])
-    def delete_actors(actor_id):
+    @requires_auth('delete:actors')
+    def delete_actors(payload, actor_id):
         actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
 
         if actor is None:
@@ -293,7 +303,8 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/movies/<int:movie_id>', methods=['DELETE'])
-    def delete_movies(movie_id):
+    @requires_auth('delete:movies')
+    def delete_movies(payload, movie_id):
         movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
 
         if movie is None:
@@ -309,7 +320,8 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/castings/<int:casting_id>', methods=['DELETE'])
-    def delete_casting(casting_id):
+    @requires_auth('delete:castings')
+    def delete_casting(payload, casting_id):
         casting = Casting.query.filter(Casting.id == casting_id).one_or_none()
 
         if casting is None:
@@ -366,6 +378,22 @@ def create_app(test_config=None):
             'error': 500,
             'message': 'internal server error'
         }), 500
+
+    @app.errorhandler(401)
+    def server_error(error):
+        return jsonify({
+            'success': False,
+            'error': 401,
+            'message': error.description or 'unauthorized'
+        }), 401
+
+    @app.errorhandler(403)
+    def server_error(error):
+        return jsonify({
+            'success': False,
+            'error': 403,
+            'message': error.description or 'forbidden'
+        }), 403
 
     return app
 

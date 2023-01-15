@@ -1,13 +1,19 @@
-"""
+"""App Unit Tests
+
 IMPORTANT: Tests require test database to be seeded with the supplied casting_agency.psql.
-IMPORTANT: Set environment variable DATABASE_URL
-        Eg: postgresql://postgres:postgres@192.168.20.154:5432/casting_agency_test
+IMPORTANT: Set the following environment variables:
+    - DATABASE_URL
+        E.g.: postgresql://postgres:postgres@192.168.20.154:5432/casting_agency_test
+    - TOKEN
+        This must be a JWT token with permissions to everything such as that of
+        an "Executive Producer".
 
 E.g.:
     createdb -h <host> -U <username> casting_agency_test
     psql -h <host> -U <username> casting_agency_test < casting_agency.psql
 
 """
+import os
 import unittest
 import json
 
@@ -23,6 +29,12 @@ class CastingAgencyTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
+        token = os.environ.get('TOKEN')
+        self.headers = {'Content-Type': 'application/json'}
+        if token:
+            self.headers.update({
+                'Authorization': f'Bearer {token}'
+            })
         # This should match what is set on app.py
         self.ITEMS_PER_PAGE = 10
 
@@ -42,7 +54,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         pass
 
     def test_create_movie(self):
-        res = self.client().post('/movies', json=self.new_movie)
+        res = self.client().post('/movies', json=self.new_movie, headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -56,7 +68,7 @@ class CastingAgencyTestCase(unittest.TestCase):
     def test_400_create_movie_missing_fields(self):
         res = self.client().post('/movies', json={
             'title': 'Spider-Man: Homecoming'
-        })
+        }, headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 400)
@@ -64,7 +76,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertIn('Missing required', data.get('message'))
 
     def test_405_movie_creation_not_allowed(self):
-        res = self.client().post('/movies/45', json=self.new_movie)
+        res = self.client().post('/movies/45', json=self.new_movie, headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 405)
@@ -76,7 +88,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         NOTE: Seeded data contains records.
         NOTE: Assume ITEMS_PER_PAGE = 10
         """
-        res = self.client().get('/movies')
+        res = self.client().get('/movies', headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -85,7 +97,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertTrue(len(data['movies']) == self.ITEMS_PER_PAGE)
 
     def test_404_sent_request_beyond_valid_page(self):
-        res = self.client().get('/movies?page=999')
+        res = self.client().get('/movies?page=999', headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -99,7 +111,7 @@ class CastingAgencyTestCase(unittest.TestCase):
             test_movie.insert()
             test_id = test_movie.id
 
-            res = self.client().delete(f'/movies/{test_id}')
+            res = self.client().delete(f'/movies/{test_id}', headers=self.headers)
             data = json.loads(res.data)
 
             movie = Movie.query.filter(Movie.id == test_id).one_or_none()
@@ -110,7 +122,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertEqual(movie, None)
 
     def test_422_if_deleting_non_existing_movies(self):
-        res = self.client().delete('/movies/1000')
+        res = self.client().delete('/movies/1000', headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
@@ -118,7 +130,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'unprocessable')
 
     def test_get_movie_by_id(self):
-        res = self.client().get('/movies/1')
+        res = self.client().get('/movies/1', headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -128,7 +140,7 @@ class CastingAgencyTestCase(unittest.TestCase):
     def test_get_movie_by_actor(self):
         """Tests both movie_by_actor and actor_by_movie."""
         actor_id = 1
-        movie_res = self.client().get(f'/actors/{actor_id}/movies')
+        movie_res = self.client().get(f'/actors/{actor_id}/movies', headers=self.headers)
         movie_data = json.loads(movie_res.data)
 
         self.assertEqual(movie_res.status_code, 200)
@@ -136,7 +148,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertTrue(movie_data['movies'])
 
         movie_id = movie_data['movies'][0]['id']
-        actor_res = self.client().get(f'/movies/{movie_id}/actors')
+        actor_res = self.client().get(f'/movies/{movie_id}/actors', headers=self.headers)
         actor_data = json.loads(actor_res.data)
         found_actor = [x for x in actor_data['actors'] if x['id'] == actor_id]
 
@@ -146,7 +158,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertTrue(found_actor)
 
     def test_create_actor(self):
-        res = self.client().post('/actors', json=self.new_actor)
+        res = self.client().post('/actors', json=self.new_actor, headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -162,7 +174,7 @@ class CastingAgencyTestCase(unittest.TestCase):
             'name': 'Tom Cruise',
             'age': '',
             'gender': 'M'
-        })
+        }, headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 400)
@@ -170,7 +182,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertIn('cannot be empty', data.get('message'))
 
     def test_405_actor_creation_not_allowed(self):
-        res = self.client().post('/actors/45', json=self.new_actor)
+        res = self.client().post('/actors/45', json=self.new_actor, headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 405)
@@ -182,7 +194,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         NOTE: Seeded data contains records.
         NOTE: Assume ITEMS_PER_PAGE = 10
         """
-        res = self.client().get('/actors')
+        res = self.client().get('/actors', headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -197,7 +209,7 @@ class CastingAgencyTestCase(unittest.TestCase):
             test_actor.insert()
             test_id = test_actor.id
 
-            res = self.client().delete(f'/actors/{test_id}')
+            res = self.client().delete(f'/actors/{test_id}', headers=self.headers)
             data = json.loads(res.data)
 
             actor = Actor.query.filter(Actor.id == test_id).one_or_none()
@@ -208,7 +220,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertEqual(actor, None)
 
     def test_422_if_deleting_non_existing_actors(self):
-        res = self.client().delete('/actors/1000')
+        res = self.client().delete('/actors/1000', headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
@@ -216,7 +228,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'unprocessable')
 
     def test_get_actor_by_id(self):
-        res = self.client().get('/actors/1')
+        res = self.client().get('/actors/1', headers=self.headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -224,14 +236,14 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertEqual(data['actor']['id'], 1)
 
     def test_create_casting(self):
-        movie_res = self.client().post('/movies', json=self.new_movie)
+        movie_res = self.client().post('/movies', json=self.new_movie, headers=self.headers)
         movie_data = json.loads(movie_res.data)
-        actor_res = self.client().post('/actors', json=self.new_actor)
+        actor_res = self.client().post('/actors', json=self.new_actor, headers=self.headers)
         actor_data = json.loads(actor_res.data)
         casting_res = self.client().post('/castings', json={
             'movie_id': movie_data['created_id'],
             'actor_id': actor_data['created_id']
-        })
+        }, headers=self.headers)
         casting_data = json.loads(casting_res.data)
 
         self.assertEqual(casting_res.status_code, 200)
@@ -246,20 +258,20 @@ class CastingAgencyTestCase(unittest.TestCase):
 
     def test_integrity_error_casting(self):
         """Test create casting that already exists"""
-        movie_res = self.client().post('/movies', json=self.new_movie)
+        movie_res = self.client().post('/movies', json=self.new_movie, headers=self.headers)
         movie_data = json.loads(movie_res.data)
-        actor_res = self.client().post('/actors', json=self.new_actor)
+        actor_res = self.client().post('/actors', json=self.new_actor, headers=self.headers)
         actor_data = json.loads(actor_res.data)
         casting_res = self.client().post('/castings', json={
             'movie_id': movie_data['created_id'],
             'actor_id': actor_data['created_id']
-        })
+        }, headers=self.headers)
         casting_data = json.loads(casting_res.data)
         casting_created_id = casting_data['created_id']
         casting_res = self.client().post('/castings', json={
             'movie_id': movie_data['created_id'],
             'actor_id': actor_data['created_id']
-        })
+        }, headers=self.headers)
         casting_data = json.loads(casting_res.data)
 
         self.assertEqual(casting_res.status_code, 400)
@@ -284,7 +296,7 @@ class CastingAgencyTestCase(unittest.TestCase):
             test_casting = Casting(movie_id=test_movie_id, actor_id=test_actor_id)
             test_casting.insert()
             test_casting_id = test_casting.id
-            res = self.client().delete(f'/castings/{test_casting_id}')
+            res = self.client().delete(f'/castings/{test_casting_id}', headers=self.headers)
             data = json.loads(res.data)
 
             casting = Casting.query.filter(Casting.id == test_casting_id).one_or_none()
@@ -298,6 +310,8 @@ class CastingAgencyTestCase(unittest.TestCase):
         with self.app.app_context():
             Movie.query.filter(Movie.id == test_movie_id).one().delete()
             Actor.query.filter(Actor.id == test_actor_id).one().delete()
+
+    # TODO: Add RBAC Testing with different tokens
 
 
 if __name__ == '__main__':
