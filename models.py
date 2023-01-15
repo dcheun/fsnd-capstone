@@ -2,7 +2,7 @@ import os
 
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, Date, create_engine
+from sqlalchemy import Column, Integer, String, Date, ForeignKey
 
 # Database path. Eg: postgresql://postgres:postgres@192.168.20.154:5432/casting_agency
 database_path = os.environ['DATABASE_URL']
@@ -16,7 +16,6 @@ def setup_db(app, db_path=database_path):
     app.config['SQLALCHEMY_DATABASE_URI'] = db_path
     db.app = app
     db.init_app(app)
-    db.create_all()
     migrate.init_app(app, db)
 
 
@@ -31,6 +30,7 @@ class Movie(db.Model):
     id = Column(Integer, primary_key=True)
     title = Column(String(256))
     release_date = Column(Date)
+    casting = db.relationship('Casting', backref='movie')
 
     def __init__(self, title, release_date):
         self.title = title
@@ -66,6 +66,7 @@ class Actor(db.Model):
     name = Column(String)
     age = Column(Integer)
     gender = Column(String(1))
+    casting = db.relationship('Casting', backref='actor')
 
     def __int__(self, name, age, gender):
         self.name = name
@@ -92,4 +93,34 @@ class Actor(db.Model):
             'name': self.name,
             'age': self.age,
             'gender': self.gender
+        }
+
+
+class Casting(db.Model):
+
+    __tablename__ = 'casting'
+    __table_args__ = (
+        db.UniqueConstraint('movie_id', 'actor_id', name='unique_casting'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    movie_id = Column(Integer, ForeignKey('movie.id', ondelete='CASCADE'), nullable=False)
+    actor_id = Column(Integer, ForeignKey('actor.id', ondelete='CASCADE'), nullable=False)
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.id})'
+
+    def format(self):
+        return {
+            'id': self.id,
+            'movie_id': self.movie_id,
+            'actor_id': self.actor_id
         }

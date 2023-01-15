@@ -1,9 +1,11 @@
 import os
+import sys
 
 from flask import Flask, request, abort, jsonify
 from flask_cors import CORS
+from sqlalchemy.exc import IntegrityError
 
-from models import setup_db, Movie, Actor
+from models import setup_db, Movie, Actor, Casting
 
 ITEMS_PER_PAGE = 10
 
@@ -51,7 +53,7 @@ def create_app(test_config=None):
 
     @app.route('/movies', methods=['GET'])
     def get_movies():
-        selection = Movie.query.order_by(Movie.id).all()
+        selection = Movie.query.order_by(Movie.release_date.desc()).all()
         movies = paginate(request, selection)
 
         if len(movies) == 0:
@@ -85,6 +87,48 @@ def create_app(test_config=None):
         return jsonify({
             'success': True,
             'movie': actor.format()
+        })
+
+    @app.route('/actors/<int:actor_id>/movies', methods=['GET'])
+    def get_movies_by_actor(actor_id):
+        actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
+
+        if not actor:
+            abort(404)
+
+        selection = [x.movie for x in actor.casting]
+        selection = sorted(selection, key=lambda x: x.release_date, reverse=True)
+        movies = paginate(request, selection)
+
+        if len(movies) == 0:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'actor': actor.format(),
+            'movies': movies,
+            'total_movies': len(selection)
+        })
+
+    @app.route('/movies/<int:movie_id>/actors', methods=['GET'])
+    def get_actors_by_movie(movie_id):
+        movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
+
+        if not movie:
+            abort(404)
+
+        selection = [x.actor for x in movie.casting]
+        selection = sorted(selection, key=lambda x: x.id)
+        actors = paginate(request, selection)
+
+        if len(actors) == 0:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'movie': movie.format(),
+            'actors': actors,
+            'total_actors': len(actors)
         })
 
     @app.route('/actors', methods=['POST'])
@@ -142,6 +186,37 @@ def create_app(test_config=None):
                 'created_id': movie.id
             })
         except Exception:
+            abort(422)
+
+    @app.route('/castings', methods=['POST'])
+    def create_casting():
+        body = request.get_json()
+
+        # Check for required fields.
+        required_fields = {'movie_id', 'actor_id'}
+        missing_fields = required_fields.difference(body)
+        if missing_fields:
+            abort(400, f'Missing required cast field(s): {", ".join(missing_fields)}')
+        # Check for empty fields.
+        empty_fields = set(x for x in body if not body.get(x))
+        empty_required_fields = required_fields.intersection(empty_fields)
+        if empty_required_fields:
+            abort(400, f'Cast field(s) cannot be empty: {", ".join(empty_required_fields)}')
+
+        try:
+            cast = Casting(
+                movie_id=body.get('movie_id'),
+                actor_id=body.get('actor_id')
+            )
+            cast.insert()
+            return jsonify({
+                'success': True,
+                'created_id': cast.id
+            })
+        except IntegrityError:
+            abort(400, f'Casting already exist')
+        except Exception:
+            print(sys.exc_info())
             abort(422)
 
     @app.route('/actors/<int:actor_id>', methods=['PATCH'])
@@ -230,6 +305,22 @@ def create_app(test_config=None):
             return jsonify({
                 'success': True,
                 'delete': movie_id
+            })
+        except Exception:
+            abort(422)
+
+    @app.route('/castings/<int:casting_id>', methods=['DELETE'])
+    def delete_casting(casting_id):
+        casting = Casting.query.filter(Casting.id == casting_id).one_or_none()
+
+        if casting is None:
+            abort(404)
+
+        try:
+            casting.delete()
+            return jsonify({
+                'success': True,
+                'delete': casting_id
             })
         except Exception:
             abort(422)
