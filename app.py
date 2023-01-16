@@ -161,7 +161,7 @@ def create_app(test_config=None):
             return jsonify({
                 'success': True,
                 'created_id': actor.id
-            })
+            }), 201
         except Exception:
             abort(422)
 
@@ -190,7 +190,7 @@ def create_app(test_config=None):
             return jsonify({
                 'success': True,
                 'created_id': movie.id
-            })
+            }), 201
         except Exception:
             abort(422)
 
@@ -219,7 +219,7 @@ def create_app(test_config=None):
             return jsonify({
                 'success': True,
                 'created_id': cast.id
-            })
+            }), 201
         except IntegrityError:
             abort(400, f'Casting already exists')
         except Exception:
@@ -251,7 +251,7 @@ def create_app(test_config=None):
 
             return jsonify({
                 'success': True,
-                'actors': [actor.format()]
+                'actor': actor.format()
             })
         except Exception:
             abort(422)
@@ -280,7 +280,7 @@ def create_app(test_config=None):
 
             return jsonify({
                 'success': True,
-                'movies': [movie.format()]
+                'movie': movie.format()
             })
         except Exception:
             abort(422)

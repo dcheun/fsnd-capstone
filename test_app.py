@@ -83,7 +83,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         res = self.client().post('/movies', json=self.new_movie, headers=self.headers)
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.status_code, 201)
         self.assertEqual(data['success'], True)
         self.assertTrue(data['created_id'])
 
@@ -129,6 +129,14 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'resource not found')
+
+    def test_update_movie(self):
+        res = self.client().patch('/movies/1', json={'release_date': '1995-10-04'}, headers=self.headers)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertIn('1995', data['movie']['release_date'])
 
     def test_delete_movie(self):
         with self.app.app_context():
@@ -187,7 +195,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         res = self.client().post('/actors', json=self.new_actor, headers=self.headers)
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.status_code, 201)
         self.assertEqual(data['success'], True)
         self.assertTrue(data['created_id'])
 
@@ -227,6 +235,14 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['total_actors'] > self.ITEMS_PER_PAGE)
         self.assertTrue(len(data['actors']) == self.ITEMS_PER_PAGE)
+
+    def test_update_actor(self):
+        res = self.client().patch('/actors/8', json={'gender': 'F'}, headers=self.headers)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual('F', data['actor']['gender'])
 
     def test_delete_actor(self):
         with self.app.app_context():
@@ -272,7 +288,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         }, headers=self.headers)
         casting_data = json.loads(casting_res.data)
 
-        self.assertEqual(casting_res.status_code, 200)
+        self.assertEqual(casting_res.status_code, 201)
         self.assertEqual(casting_data['success'], True)
         self.assertTrue(casting_data['created_id'])
 
@@ -383,7 +399,7 @@ class CastingAgencyTestCase(unittest.TestCase):
         res = self.client().post('/actors', json=self.new_actor, headers=self.headers)
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.status_code, 201)
         self.assertEqual(data['success'], True)
         self.assertTrue(data['created_id'])
 
