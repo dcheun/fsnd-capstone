@@ -1,11 +1,7 @@
 # API Reference
 
 ## Getting Started
-- Base URL: This app can be run and hosted locally. By default, it will be listening on `http://127.0.0.1:8080`.
-  - To run the development server locally, modify the run command in app.py to:
-```python
-app.run(host='0.0.0.0', port=8080, debug=True)
-```
+- Base URL: This app can be run and hosted locally. By default, it will be listening on `http://127.0.0.1:5000`.
 - Authentication:
   - The API is protected using JWT and RBAC via Auth0.
   - Valid JWT bearer tokens are required with the correct permissions set.
@@ -52,7 +48,7 @@ There are `7` error types that can be returned from the API, including:
     - `movies` - List of movie objects, paginated.
     - `total_movies` - The number of total movies.
 - Required Permission: `get:movies`
-- Sample: `curl http://127.0.0.1:8080/movies?page=1 --header "Authorization: Bearer <TOKEN>"`
+- Sample: `curl http://127.0.0.1:5000/movies?page=1 --header "Authorization: Bearer <TOKEN>"`
 ```json
 {
   "movies": [
@@ -107,7 +103,7 @@ There are `7` error types that can be returned from the API, including:
     - `actors` - List of actor objects, paginated.
     - `total_actors` - The number of total actors.
 - Required Permission: `get:actors`
-- Sample: `curl http://127.0.0.1:8080/actors?page=1 --header "Authorization: Bearer <TOKEN>"`
+- Sample: `curl http://127.0.0.1:5000/actors?page=1 --header "Authorization: Bearer <TOKEN>"`
 ```json
 {
     "actors": [
@@ -184,7 +180,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `movie` - Data of the movie object.
 - Required Permission: `get:movies`
-- Sample: `curl http://127.0.0.1:8080/movies/1 --header "Authorization: Bearer <TOKEN>"`
+- Sample: `curl http://127.0.0.1:5000/movies/1 --header "Authorization: Bearer <TOKEN>"`
 ```json
 {
     "movie": {
@@ -203,7 +199,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `actor` - Data of the actor object.
 - Required Permission: `get:actors`
-- Sample: `curl http://127.0.0.1:8080/actors/1 --header "Authorization: Bearer <TOKEN>"`
+- Sample: `curl http://127.0.0.1:5000/actors/1 --header "Authorization: Bearer <TOKEN>"`
 ```json
 {
     "actor": {
@@ -227,7 +223,7 @@ There are `7` error types that can be returned from the API, including:
     - `movies` - List of movie objects where actor was cast, paginated.
     - `total_movies` - The number of total movies where this actor was cast.
 - Required Permission: `get:movies`
-- Sample: `curl http://127.0.0.1:8080/actors/1/movies --header "Authorization: Bearer <TOKEN>"`
+- Sample: `curl http://127.0.0.1:5000/actors/1/movies --header "Authorization: Bearer <TOKEN>"`
 ```json
 {
     "actor": {
@@ -259,7 +255,7 @@ There are `7` error types that can be returned from the API, including:
     - `actors` - List of actors who were cast to this movie id, paginated.
     - `total_actors` - The number of total actors on record casted to this movie.
 - Required Permission: `get:actors`
-- Sample: `curl http://127.0.0.1:8080/movies/1/actors --header "Authorization: Bearer <TOKEN>"`
+- Sample: `curl http://127.0.0.1:5000/movies/1/actors --header "Authorization: Bearer <TOKEN>"`
 ```json
 {
     "actors": [
@@ -296,7 +292,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `created_id` - id of the created resource.
 - Required Permission: `post:movies`
-- Sample: `curl http://127.0.0.1:8080/movies -X POST -H "Content-Type: application/json"
+- Sample: `curl http://127.0.0.1:5000/movies -X POST -H "Content-Type: application/json"
       --header "Authorization: Bearer <TOKEN>"
       --data '{"title": "Spider-Man: Homecoming", "release_date": "2017-06-28"}'`
 ```json
@@ -317,7 +313,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `created_id` - id of the created resource.
 - Required Permission: `post:actors`
-- Sample: `curl http://127.0.0.1:8080/actors -X POST -H "Content-Type: application/json"
+- Sample: `curl http://127.0.0.1:5000/actors -X POST -H "Content-Type: application/json"
       --header "Authorization: Bearer <TOKEN>"
       --data '{"name": "Tom Holland", "age": 28, "gender": "M"}'`
 ```json
@@ -337,7 +333,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `created_id` - id of the created resource.
 - Required Permission: `post:castings`
-- Sample: `curl http://127.0.0.1:8080/castings -X POST -H "Content-Type: application/json"
+- Sample: `curl http://127.0.0.1:5000/castings -X POST -H "Content-Type: application/json"
       --header "Authorization: Bearer <TOKEN>"
       --data '{"movie_id": 30, "actor_id": 22}'`
 ```json
@@ -357,7 +353,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `movie` - Data of the updated movie object.
 - Required Permission: `patch:movies`
-- Sample: `curl http://127.0.0.1:8080/movies/1 -X PATCH -H "Content-Type: application/json"
+- Sample: `curl http://127.0.0.1:5000/movies/1 -X PATCH -H "Content-Type: application/json"
       --header "Authorization: Bearer <TOKEN>"
       --data '{"release_date": "1994-10-04"}'`
 ```json
@@ -382,7 +378,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `movie` - Data of the updated actor object.
 - Required Permission: `patch:actors`
-- Sample: `curl http://127.0.0.1:8080/movies/1 -X PATCH -H "Content-Type: application/json"
+- Sample: `curl http://127.0.0.1:5000/movies/1 -X PATCH -H "Content-Type: application/json"
       --header "Authorization: Bearer <TOKEN>"
       --data '{"gender": "F"}'`
 ```json
@@ -404,7 +400,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `deleted_id` - id of the deleted resource.
 - Required Permission: `delete:movies`
-- Sample: `curl -X DELETE http://127.0.0.1:8080/movies/47`
+- Sample: `curl -X DELETE http://127.0.0.1:5000/movies/47`
 ```json
 {
     "deleted_id": 47,
@@ -419,7 +415,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `deleted_id` - id of the deleted resource.
 - Required Permission: `delete:actors`
-- Sample: `curl -X DELETE http://127.0.0.1:8080/actors/43`
+- Sample: `curl -X DELETE http://127.0.0.1:5000/actors/43`
 ```json
 {
     "deleted_id": 43,
@@ -434,7 +430,7 @@ There are `7` error types that can be returned from the API, including:
     - `success` - The success value.
     - `deleted_id` - id of the deleted resource.
 - Required Permission: `delete:castings`
-- Sample: `curl -X DELETE http://127.0.0.1:8080/castings/49`
+- Sample: `curl -X DELETE http://127.0.0.1:5000/castings/49`
 ```json
 {
     "deleted_id": 49,
