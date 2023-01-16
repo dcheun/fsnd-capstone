@@ -4,9 +4,12 @@ IMPORTANT: Tests require test database to be seeded with the supplied casting_ag
 IMPORTANT: Set the following environment variables:
     - DATABASE_URL
         E.g.: postgresql://postgres:postgres@192.168.20.154:5432/casting_agency_test
-    - TOKEN
-        This must be a JWT token with permissions to everything such as that of
-        an "Executive Producer".
+    - EP_TOKEN
+        "Executive Producer" token. This must be a JWT token with permissions to everything.
+    - CD_TOKEN
+        "Casting Director" token. JWT with the Casting Director permissions.
+    - CA_TOKEN
+        "Casting Assistant" token. JWT with the Casting Assistant permissions.
 
 E.g.:
     createdb -h <host> -U <username> casting_agency_test
@@ -29,12 +32,8 @@ class CastingAgencyTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        token = os.environ.get('TOKEN')
         self.headers = {'Content-Type': 'application/json'}
-        if token:
-            self.headers.update({
-                'Authorization': f'Bearer {token}'
-            })
+        self.set_ep_tokens()
         # This should match what is set on app.py
         self.ITEMS_PER_PAGE = 10
 
@@ -52,6 +51,33 @@ class CastingAgencyTestCase(unittest.TestCase):
     def tearDown(self) -> None:
         """Executed after each test"""
         pass
+
+    def set_ep_tokens(self) -> None:
+        """Sets the Executive Producer token."""
+        self.ep_token = os.environ.get('EP_TOKEN')
+        self.headers = {'Content-Type': 'application/json'}
+        if self.ep_token:
+            self.headers.update({
+                'Authorization': f'Bearer {self.ep_token}'
+            })
+
+    def set_cd_tokens(self) -> None:
+        """Sets the Casting Director token."""
+        self.cd_token = os.environ.get('CD_TOKEN')
+        self.headers = {'Content-Type': 'application/json'}
+        if self.cd_token:
+            self.headers.update({
+                'Authorization': f'Bearer {self.cd_token}'
+            })
+
+    def set_ca_tokens(self) -> None:
+        """Sets the Casting Assistant token."""
+        self.ca_token = os.environ.get('CA_TOKEN')
+        self.headers = {'Content-Type': 'application/json'}
+        if self.ca_token:
+            self.headers.update({
+                'Authorization': f'Bearer {self.ca_token}'
+            })
 
     def test_create_movie(self):
         res = self.client().post('/movies', json=self.new_movie, headers=self.headers)
@@ -311,7 +337,68 @@ class CastingAgencyTestCase(unittest.TestCase):
             Movie.query.filter(Movie.id == test_movie_id).one().delete()
             Actor.query.filter(Actor.id == test_actor_id).one().delete()
 
-    # TODO: Add RBAC Testing with different tokens
+    # RBAC Testing with different tokens
+    def test_z000_401_get_movies_no_token(self):
+        res = self.client().get('/movies')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
+        self.assertIn('Authorization required', data['message'])
+
+    def test_z001_422_get_movies_invalid_token(self):
+        res = self.client().get('/movies', headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer ABCDEFG'
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertIn('unprocessable', data['message'])
+
+    # Casting Assistant Tests
+    def test_z100_ca_get_movies(self):
+        self.set_ca_tokens()
+        res = self.client().get('/movies', headers=self.headers)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['total_movies'] > self.ITEMS_PER_PAGE)
+        self.assertTrue(len(data['movies']) == self.ITEMS_PER_PAGE)
+
+    def test_z101_403_ca_403_add_actor(self):
+        self.set_ca_tokens()
+        res = self.client().post('/actors', json=self.new_actor, headers=self.headers)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+        self.assertIn('Permission not found', data['message'])
+
+    # Casting Director Tests
+    def test_z200_cd_create_actor(self):
+        self.set_cd_tokens()
+        res = self.client().post('/actors', json=self.new_actor, headers=self.headers)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['created_id'])
+
+        # Clean up
+        with self.app.app_context():
+            Actor.query.filter(Actor.id == data['created_id']).one().delete()
+
+    def test_z201_403_cd_create_movie(self):
+        self.set_cd_tokens()
+        res = self.client().post('/movies', json=self.new_movie, headers=self.headers)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+        self.assertIn('Permission not found', data['message'])
 
 
 if __name__ == '__main__':
