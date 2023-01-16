@@ -1,14 +1,19 @@
 # API Reference
 
 ## Getting Started
-- Base URL: This app can be run and hosted locally. By default, it will be listening on `http://127.0.0.1:5000`.
-- Authentication:
-  - The API is protected using JWT and RBAC via Auth0.
+
+- Base URL:
+  - The live deployed API URL: `https://casting-agency.onrender.com/`
+  - This app can be run and hosted locally. By default, it will be listening on `http://127.0.0.1:5000`. Examples below will use the development URL.
+- Authorization:
+  - The API is protected using JWT and RBAC.
   - Valid JWT bearer tokens are required with the correct permissions set.
   - At this time, you can only request a valid JWT from the author.
 
 ## Role-Based Access Control
+
 There are `3` roles supported by the API with respective permissions, including:
+
 - Casting Assistant
   - Can view actors and movies
 - Casting Director
@@ -20,7 +25,9 @@ There are `3` roles supported by the API with respective permissions, including:
   - Add or delete a movie from the database
 
 ## Error Handling
+
 Errors are returned as JSON objects in the following format:
+
 ```json
 {
   "success": false,
@@ -28,7 +35,9 @@ Errors are returned as JSON objects in the following format:
   "message": "bad request"
 }
 ```
+
 There are `7` error types that can be returned from the API, including:
+
 - 400: Bad Request
 - 404: Resource Not Found
 - 405: Method Not Allowed
@@ -38,6 +47,7 @@ There are `7` error types that can be returned from the API, including:
 - 403: Forbidden
 
 ## Endpoints
+
 ### GET /movies
 - General:
   - Retrieves a list of movies.
