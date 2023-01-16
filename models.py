@@ -16,6 +16,9 @@ def setup_db(app, db_path=database_path):
     app.config['SQLALCHEMY_DATABASE_URI'] = db_path or database_path
     db.app = app
     db.init_app(app)
+    # NOTE: render doesn't support shell access on free tier.
+    # To get around not being able to run flask db init, migrate, upgrade.
+    db.create_all()
     migrate.init_app(app, db)
 
 
